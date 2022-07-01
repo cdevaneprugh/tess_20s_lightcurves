@@ -49,8 +49,10 @@ def simple_stitch(target, sectors):
 
 ###########################################################################
 
+# preps data for fourier analysis using same foundation as above
 # target and sector should both be strings/list of strings
-# crop should be an int or float to remove from either end of a sectors
+# crop should be an int or float to remove from breakpoints of sectors
+# breakpoints are anywhere part of the data needs to be removed (discontinuities, sector beginnings/ends)
 
 def prep_data(target, sectors, crop):
     # path list of sectors to create lightcurves objects
@@ -81,9 +83,25 @@ def prep_data(target, sectors, crop):
         # define time array
         t = lc.time.value
 
-        # mask to remove quality issues at beginning and end of sector
-        # crop removes input value from either end of sector (unit=days)
-        mask = np.where( (t > t[0]+crop) & (t < t[-1]-crop))
+        # loop to find discontinuity (break point) in middle of sector
+        # finds difference between two consecutive time stamps, compares to set 'break time'
+        # break time is set as 0.5 days, anything longer must be the middle discontinuity
+        for i in range(len(t)-1):
+            if t[i+1]-t[i] > 0.5:
+                break
+            # i will remain saved as the array index where discontinuity begins
+
+        # mask to remove data around break points
+        # crop is the input given for how much to remove for each break points
+        break1 = t[0]+crop
+        break2 = t[i]-crop
+        break3 = t[i+1]+crop
+        break4 = t[-1]-crop
+
+        tm0 = np.where( (t > break1) & (t < break2) )
+        tm1 = np.where( (t > break3) & (t < break4) )
+
+        mask = np.concatenate( (tm0[0], tm1[0]) )
         lc = lc[mask]
 
         # normalize sector
