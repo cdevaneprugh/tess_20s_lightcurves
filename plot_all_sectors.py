@@ -1,3 +1,6 @@
+"""Plots all sectors of a specified target within a single image. The sectors
+will be plotted under each other in a vertical 'list.'"""
+
 import numpy as np
 import lightkurve as lk
 import glob
